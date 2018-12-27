@@ -52,6 +52,7 @@ class GstpluginsbadConan(ConanFile):
     
     def build_requirements(self):
         self.build_requires("glib/2.58.1@conanos/stable")
+        self.build_requires("libffi/3.299999@conanos/stable")
 
     def source(self):
         remotes = {'origin': 'https://github.com/GStreamer/gst-plugins-bad.git'}
@@ -68,7 +69,7 @@ class GstpluginsbadConan(ConanFile):
 
     def build(self):
         deps=["gstreamer","gst-plugins-base","bzip2","libass","faad2","libkate","zlib","openh264","opus","nettle",
-              "librtmp","libsrtp","libdca","libnice","soundtouch","librsvg","openjpeg","openssl","spandsp","glib"]
+              "librtmp","libsrtp","libdca","libnice","soundtouch","librsvg","openjpeg","openssl","spandsp","glib","libffi"]
         pkg_config_paths=[ os.path.join(self.deps_cpp_info[i].rootpath, "lib", "pkgconfig") for i in deps ]
         prefix = os.path.join(self.build_folder, self._build_subfolder, "install")
         defs = {'prefix' : prefix}
