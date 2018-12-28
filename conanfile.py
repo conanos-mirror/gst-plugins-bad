@@ -45,7 +45,7 @@ class GstpluginsbadConan(ConanFile):
         self.requires.add("libdca/0.0.6@conanos/stable")
         self.requires.add("libnice/0.1.14@conanos/stable")
         self.requires.add("soundtouch/2.1.2@conanos/stable")
-        #self.requires.add("librsvg/2.40.20@conanos/stable")
+        self.requires.add("librsvg/2.40.20@conanos/stable")
         self.requires.add("openjpeg/2.3.0@conanos/stable")
         self.requires.add("openssl/1.1.1@conanos/stable")
         self.requires.add("spandsp/0.0.6@conanos/stable")
@@ -84,16 +84,16 @@ class GstpluginsbadConan(ConanFile):
         os.rename(extracted_dir, self._source_subfolder)
 
     def build(self):
-        #"librsvg",
         deps=["gstreamer","gst-plugins-base","bzip2","libass","faad2","libkate","zlib","openh264","opus","nettle",
-              "librtmp","libsrtp","libdca","libnice","soundtouch","openjpeg","openssl","spandsp",
-              "orc","glib","libffi","gdk-pixbuf","cairo","libpng","pixman","fontconfig","freetype","expat","pango","libcroco","libxml2","libiconv","harfbuzz","fribidi"]
+              "librtmp","libsrtp","libdca","libnice","soundtouch","librsvg","openjpeg","openssl","spandsp",
+              "orc","glib","libffi","gdk-pixbuf","cairo","libpng","pixman","fontconfig","freetype","expat",
+              "pango","libcroco","libxml2","libiconv","libtiff","harfbuzz","fribidi"]
         pkg_config_paths=[ os.path.join(self.deps_cpp_info[i].rootpath, "lib", "pkgconfig") for i in deps ]
         prefix = os.path.join(self.build_folder, self._build_subfolder, "install")
         binpath = [ os.path.join(self.deps_cpp_info[i].rootpath, "bin") for i in ["orc","glib"]  ]
         include = [ os.path.join(self.deps_cpp_info["cairo"].rootpath, "include"),
                     os.path.join(self.deps_cpp_info["cairo"].rootpath, "include","cairo"),
-                    #os.path.join(self.deps_cpp_info["librsvg"].rootpath, "include","librsvg-2.0"),
+                    os.path.join(self.deps_cpp_info["librsvg"].rootpath, "include","librsvg-2.0"),
                     os.path.join(self.deps_cpp_info["gdk-pixbuf"].rootpath, "include","gdk-pixbuf-2.0"),
                     os.path.join(self.deps_cpp_info["libxml2"].rootpath, "include","libxml2"),
                     os.path.join(self.deps_cpp_info["libiconv"].rootpath, "include"),
