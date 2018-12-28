@@ -1,6 +1,6 @@
 from conans import ConanFile, Meson, tools
 from conanos.build import config_scheme
-import os
+import os, shutil
 
 class GstpluginsbadConan(ConanFile):
     name = "gst-plugins-bad"
@@ -9,6 +9,7 @@ class GstpluginsbadConan(ConanFile):
     url = "https://github.com/conanos/gst-plugins-bad/"
     homepage = "https://github.com/GStreamer/gst-plugins-bad"
     license = "GPL-v2"
+    exports = ["gstdtlsconnection.c"]
     generators = "gcc","visual_studio"
     settings = "os", "compiler", "build_type", "arch"
     options = {
@@ -40,7 +41,7 @@ class GstpluginsbadConan(ConanFile):
         self.requires.add("openh264/1.8.0@conanos/stable")
         self.requires.add("opus/1.2.1@conanos/stable")
         self.requires.add("nettle/3.4.1@conanos/stable")
-        self.requires.add("librtmp/2.4.r512-1@conanos/stable")
+        self.requires.add("librtmp/2.4@conanos/stable")
         self.requires.add("libsrtp/2.2.0@conanos/stable")
         self.requires.add("libdca/0.0.6@conanos/stable")
         self.requires.add("libnice/0.1.14@conanos/stable")
@@ -69,6 +70,9 @@ class GstpluginsbadConan(ConanFile):
         self.build_requires("libtiff/4.0.10@conanos/stable")
         self.build_requires("harfbuzz/2.1.3@conanos/stable")
         self.build_requires("fribidi/1.0.5@conanos/stable")
+        self.build_requires("gmp/6.1.2-5@conanos/stable")
+        self.build_requires("gnutls/3.5.19@conanos/stable")
+
 
     def source(self):
         remotes = {'origin': 'https://github.com/GStreamer/gst-plugins-bad.git'}
@@ -82,14 +86,18 @@ class GstpluginsbadConan(ConanFile):
             self.run('git reset --hard %s'%(self.version))
             self.run('git submodule update --init --recursive')
         os.rename(extracted_dir, self._source_subfolder)
+        if self.settings.os == 'Windows':
+            shutil.copy2(os.path.join(self.source_folder,"gstdtlsconnection.c"),
+                         os.path.join(self.source_folder,self._source_subfolder,"ext","dtls","gstdtlsconnection.c"))
 
     def build(self):
         deps=["gstreamer","gst-plugins-base","bzip2","libass","faad2","libkate","zlib","openh264","opus","nettle",
               "librtmp","libsrtp","libdca","libnice","soundtouch","librsvg","openjpeg","openssl","spandsp",
               "orc","glib","libffi","gdk-pixbuf","cairo","libpng","pixman","fontconfig","freetype","expat",
-              "pango","libcroco","libxml2","libiconv","libtiff","harfbuzz","fribidi"]
+              "pango","libcroco","libxml2","libiconv","libtiff","harfbuzz","fribidi","gmp","gnutls"]
         pkg_config_paths=[ os.path.join(self.deps_cpp_info[i].rootpath, "lib", "pkgconfig") for i in deps ]
         prefix = os.path.join(self.build_folder, self._build_subfolder, "install")
+        libpath = [ os.path.join(self.deps_cpp_info[i].rootpath, "lib") for i in ["zlib", "gmp","glib"] ]
         binpath = [ os.path.join(self.deps_cpp_info[i].rootpath, "bin") for i in ["orc","glib"]  ]
         include = [ os.path.join(self.deps_cpp_info["cairo"].rootpath, "include"),
                     os.path.join(self.deps_cpp_info["cairo"].rootpath, "include","cairo"),
@@ -97,7 +105,9 @@ class GstpluginsbadConan(ConanFile):
                     os.path.join(self.deps_cpp_info["gdk-pixbuf"].rootpath, "include","gdk-pixbuf-2.0"),
                     os.path.join(self.deps_cpp_info["libxml2"].rootpath, "include","libxml2"),
                     os.path.join(self.deps_cpp_info["libiconv"].rootpath, "include"),
-                    os.path.join(self.deps_cpp_info["pango"].rootpath, "include","pango-1.0"), ]
+                    os.path.join(self.deps_cpp_info["pango"].rootpath, "include","pango-1.0"),
+                    os.path.join(self.deps_cpp_info["librtmp"].rootpath, "include"),
+                    os.path.join(self.deps_cpp_info["libnice"].rootpath, "include"), ]
 
         defs = {'prefix' : prefix}
         if self.settings.os == "Linux":
@@ -109,6 +119,7 @@ class GstpluginsbadConan(ConanFile):
         if self.settings.os == 'Windows':
             with tools.environment_append({
                 'PATH' : os.pathsep.join(binpath + [os.getenv('PATH')]),
+                'LIB' : os.pathsep.join(libpath + [os.getenv('LIB')]),
                 'INCLUDE' : os.pathsep.join(include + [os.getenv('INCLUDE')]),
                 }):
                 meson.configure(defs=defs,source_dir=self._source_subfolder, build_dir=self._build_subfolder,
